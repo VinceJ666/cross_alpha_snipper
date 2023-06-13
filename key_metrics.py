@@ -7,6 +7,7 @@ Created on Sat Aug  6 20:24:24 2022
 """
 
 import numpy as np
+import pandas as pd
 from scipy import stats
 
 def annual_return(ret,trading_days=365):
@@ -66,7 +67,7 @@ def ic_stats(df):
     icir=df.mean()/df.std()
     return ic_mean, icir, tStat, pValue
 
-def turnover(l_candid,s_candid,l_cur,s_cur):
+def turnover(l_candid,l_cur,s_candid=None,s_cur=None):
     total=len(l_cur)+len(s_cur)
     close_position=0
     for i in l_cur:
@@ -84,6 +85,11 @@ def turnover(l_candid,s_candid,l_cur,s_cur):
             open_position += 1
     return 0.5*(close_position+open_position)/total
 
+def style_detect(df0,f,fret,pret,n=5):
+    df=df0[[f,fret,pret]].dropna().sort_index()
+    df[f]=df.groupby('datetime')[f].apply(lambda x:pd.qcut(x,n,labels=range(n))).astype(int)  
+    ret=df[[f,fret,pret]].groupby([f]).mean().reset_index()
+    return ret
 
     
     

@@ -17,6 +17,11 @@ from key_metrics import annual_return, sharpe_ratio, calmar_ratio, win_rate
 from key_metrics import drawdown_series, max_drawdown, ranked_ic_series, ranked_ic_stats, turnover
 
 
+def style_analysis(df0,f,fret,pret,n=5):
+    df=df0[[f,fret,pret]].dropna().sort_index()
+    df[f]=df.groupby('datetime')[f].apply(lambda x:pd.qcut(x,n,labels=range(n))).astype(int)  
+    ret=df[[f,fret,pret]].groupby([f]).mean().reset_index()
+    return ret
 
 def ranked_hedge_analysis(df0,f,r,n=5,fees=0,leverage=1,slippage=0,compound=True,plot=True,weight=None):
     if weight == None:     
@@ -41,14 +46,14 @@ def ranked_hedge_analysis(df0,f,r,n=5,fees=0,leverage=1,slippage=0,compound=True
     
     total_cum=round((cum["hedge"].iloc[-1]-1)*100,2)
     mean_ret=round(ret.hedge.mean()*100,2)
-    dd=round(max_drawdown(ret.hedge,compound)*100,2)
+    dd=round(max_drawdown(ret.hedge)*100,2)
     sharpe=round(sharpe_ratio(ret.hedge),2)
-    calmar=round(calmar_ratio(ret.hedge,compound),2)
-    win_rate=round((ret.hedge>0).mean()*100,2)
+    calmar=round(calmar_ratio(ret.hedge),2)
+    winr=round(win_rate(ret.hedge)*100,2)
     payoff=round(abs(ret.hedge[ret.hedge>0].mean()/ret.hedge[ret.hedge<0].mean()),2)
     
     tools=['pan','wheel_zoom','box_zoom','reset']
-    p=figure(width=800,height=300,x_axis_type='datetime',tools=tools, title=f"Total:{total_cum}%, Sharpe:{sharpe}, Mean Ret:{mean_ret}%, Max DD:{dd}%, Calmar:{calmar}, Win rate:{win_rate}%, Payoff:{payoff}")
+    p=figure(width=800,height=300,x_axis_type='datetime',tools=tools, title=f"Total:{total_cum}%, Sharpe:{sharpe}, Mean Ret:{mean_ret}%, Max DD:{dd}%, Calmar:{calmar}, Win rate:{winr}%, Payoff:{payoff}")
     p.line(cum.index,cum['hedge'],color='gold') 
     low_box=BoxAnnotation(top=1,fill_alpha=0.1,fill_color='red')
     high_box=BoxAnnotation(bottom=1,fill_alpha=0.1,fill_color='green')
@@ -66,11 +71,7 @@ def quick_analysis(df0,f,r,n=5,fees=0,leverage=1,slippage=0,compound=True,weight
     p2,ret=ranked_hedge_analysis(df0,f,r,n,fees,leverage,slippage,compound,plot=False,weight=weight)
     show(column(p0,p1,p2))
     
-def factor_style_analysis(df0,f,fret,pret,n=5):
-    df=df0[[f,fret,pret]].dropna().sort_index()
-    df[f]=df.groupby('datetime')[f].apply(lambda x:pd.qcut(x,n,labels=range(n))).astype(int)  
-    ret=df[[f,fret,pret]].groupby([f]).mean().reset_index()
-    return ret
+
     
     
     

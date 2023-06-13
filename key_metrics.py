@@ -47,6 +47,11 @@ def max_drawdown(ret):
     s=(ret+1).cumprod()
     cummax=s.cummax()
     return (s/cummax-1).min()
+
+def ic_series(df0,f1,f2):
+    df=df0[[f1,f2]].dropna().sort_index()
+    df=df.groupby('datetime').apply(lambda x:x[f1].corr(x[f2]))
+    return df.dropna()
     
 def ranked_ic_series(df0,f1,f2):
     df=df0[[f1,f2]].dropna().sort_index()
@@ -55,7 +60,7 @@ def ranked_ic_series(df0,f1,f2):
     df=df.groupby('datetime').apply(lambda x:x[f1].corr(x[f2]))
     return df.dropna()
 
-def ranked_ic_stats(df):
+def ic_stats(df):
     tStat,pValue = stats.ttest_1samp(df,0)
     ic_mean=df.mean()
     icir=df.mean()/df.std()

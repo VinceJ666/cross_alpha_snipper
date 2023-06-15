@@ -229,6 +229,24 @@ def decay_linear(df, period=10):
         na_lwma[row, :] = (np.dot(x.T, y))
     return pd.DataFrame(na_lwma, index=df.index)
 
+def linear_regression(x,y,intercept=True):
+    if intercept:
+        x_np = np.column_stack((np.ones((x.shape[0])), x))
+    else:
+        x_np = x
+    xTx = x_np.T @ x_np
+    try:
+        xTx_inv = np.linalg.inv(xTx)
+    except np.linalg.LinAlgError:
+        if intercept:
+            return [np.nan for _ in range(x.shape[1]+1)]
+        else:
+            return [np.nan for _ in range(x.shape[1])]
+
+    beta = xTx_inv @ x_np.T @ y
+    return beta
+
+
 def rolling_regression(df,x,y,regressor,reg_period,reg_period_unit='D'):
     """
     Rolling regression implementation.
